@@ -1,0 +1,10 @@
+- name: base
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Cloudformation SNS
+      cloudformation:
+        stack_name: "GRAPHQL-WROCLAW-SNS"
+        template: ../cloudformation/messaging/sns.yml

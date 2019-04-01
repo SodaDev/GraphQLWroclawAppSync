@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'GraphQL Wroclaw Dynamodb'
+
+#############
+# RESOURCES #
+#############
+Resources:
+  AlarmSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: 'GRAPHQL-WROCLAW-ALARMS-SNS'
+
+  AlarmSNSTopicEmailSubscription:
+    Type: AWS::SNS::Subscription
+    DependsOn: AlarmSNSTopic
+    Properties:
+      Endpoint: 'sodkiewicz.m@gmail.com'
+      Protocol: email
+      TopicArn: !Ref AlarmSNSTopic
+
+Outputs:
+  AlarmSNSTopicArn:
+    Value: !Ref AlarmSNSTopic
+    Export:
+      Name: 'GRAPHQL-WROCLAW-ALARMS-SNS'

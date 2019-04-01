@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'GraphQL Wroclaw Dynamodb'
+
+#############
+# RESOURCES #
+#############
+Resources:
+  AiportsTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: "GRAPHQL-AIRPORTS"
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      AttributeDefinitions:
+        - AttributeName: "iataCode"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "iataCode"
+          KeyType: "HASH"
+
+  ##########
+  # ALARMS #
+  ##########
+  AiportsReadThrottleEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'AIRPORTS-DYNAMODB-READ-THROTTLE-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: ReadThrottleEvents
+      Dimensions:
+        - Name: TableName
+          Value: !Ref AiportsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+  AiportsWriteThrottleEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'AIRPORTS-DYNAMODB-WRITE-THROTTLE-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: WriteThrottleEvents
+      Dimensions:
+        - Name: TableName
+          Value: !Ref AiportsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+  AiportsThrottledRequestsEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'AIRPORTS-DYNAMODB-REQUESTS-THROTTLE-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: ThrottledRequests
+      Dimensions:
+        - Name: TableName
+          Value: !Ref AiportsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+  AiportsSystemErrorsEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'AIRPORTS-DYNAMODB-SYSTEM-ERRORS-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: SystemErrorsAlarm
+      Dimensions:
+        - Name: TableName
+          Value: !Ref AiportsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+###########
+# OUTPUTS #
+###########
+Outputs:
+  AirportsTableName:
+    Description: 'Airports table name'
+    Value: !Ref AiportsTable
+    Export:
+      Name: 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-NAME'
+
+  AirportsTableArn:
+    Description: 'Airports table arn'
+    Value: !GetAtt AiportsTable.Arn
+    Export:
+      Name: 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-ARN'

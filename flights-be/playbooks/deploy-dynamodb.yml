@@ -1,0 +1,10 @@
+- name: base
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Cloudformation DynamoDB
+      cloudformation:
+        stack_name: "GRAPHQL-WROCLAW-DYNAMO"
+        template: ../cloudformation/datasource/dynamodb.yaml
