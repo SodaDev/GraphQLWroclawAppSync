@@ -1,0 +1,25 @@
+- name: base
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - set_fact:
+        stack_name: 'GRAPHQL-WROCLAW-LAMBDA'
+        operation: 'update-stack'
+
+    - name: verify if {{ stack_name }} stack exists
+      cloudformation_facts:
+        stack_name: '{{ stack_name }}'
+      register: stack_facts
+      ignore_errors: True
+
+    - set_fact:
+        operation: 'create-stack'
+      when: stack_facts.failed
+
+    - name: create stack
+      shell: >
+        aws cloudformation {{ operation }} --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+        --stack-name {{ stack_name }}
+        --template-body file://../cloudformation/lambda/lambda.yml
