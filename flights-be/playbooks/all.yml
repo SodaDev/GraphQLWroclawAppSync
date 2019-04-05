@@ -1,4 +1,6 @@
 #!/usr/bin/env ansible-playbook
+- import_playbook: deploy-security.yml
 - import_playbook: deploy-sns.yml
 - import_playbook: deploy-dynamodb.yml
+- import_playbook: deploy-elasticsearch.yml
 - import_playbook: deploy-lambda.yml

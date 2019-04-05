@@ -1,0 +1,13 @@
+- name: base
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Cloudformation Elasticsearch
+      cloudformation:
+        stack_name: "GRAPHQL-WROCLAW-ELASTICSEARCH"
+        template: ../cloudformation/datasource/elasticsearch.yaml
+
+      # Cloudformation don't support automatic binding congnito for Kibana, so it has bo done using CLI by:
+      # aws es update-elasticsearch-domain-config --domain-name=graphql-wroclaw-es --cognito-options Enabled=true,UserPoolId="user-pool-id",IdentityPoolId="identity-pool-id",RoleArn="arn:aws:iam::123456789012:role/CognitoAccessForAmazonES"

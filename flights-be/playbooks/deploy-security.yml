@@ -1,0 +1,10 @@
+- name: base
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Cloudformation Security
+      cloudformation:
+        stack_name: "GRAPHQL-WROCLAW-SECURITY"
+        template: ../cloudformation/security/cognito.yaml
