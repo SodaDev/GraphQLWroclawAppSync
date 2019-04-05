@@ -1,0 +1,32 @@
+- name: base
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - set_fact:
+        stack_name: 'GRAPHQL-WROCLAW-APPSYNC'
+        operation: 'update-stack'
+
+    - name: verify if {{ stack_name }} stack exists
+      cloudformation_facts:
+        stack_name: '{{ stack_name }}'
+      register: stack_facts
+      ignore_errors: True
+
+    - set_fact:
+        operation: 'create-stack'
+      when: stack_facts.failed
+
+    - name: package stack
+      shell: >
+        aws cloudformation package
+        --template-file ../cloudformation/appsync/appsync.yaml
+        --s3-bucket sodkiewiczm-deployments
+        --output-template-file ../cloudformation/appsync/packaged.yaml
+
+    - name: create stack
+      shell: >
+        aws cloudformation {{ operation }} --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+        --stack-name {{ stack_name }}
+        --template-body file://../cloudformation/appsync/packaged.yaml

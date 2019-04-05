@@ -58,3 +58,4 @@ fabric.properties
 /GraphQLWroclawAppSync.iml
 /.idea/
 flights-be/data/airports/GraphQLWroclawAppSync
+/flights-be/cloudformation/appsync/packaged.yaml

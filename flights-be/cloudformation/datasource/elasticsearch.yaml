@@ -37,6 +37,12 @@ Resources:
                 - 'arn:aws:iam::294104603975:role/service-role/CognitoAccessForAmazonES'
             Action: "es:*"
             Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/graphql-wroclaw-es/*'
+          - Effect: "Allow"
+            Principal:
+              AWS:
+                - 'arn:aws:iam::294104603975:role/GRAPHQL-WROCLAW-APPSYNC-ROUTES-ELASTICSEARCH-ROLE'
+            Action: "es:*"
+            Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/graphql-wroclaw-es/*'
 
   ClusterStatusRedAlarm:
     Type: 'AWS::CloudWatch::Alarm'

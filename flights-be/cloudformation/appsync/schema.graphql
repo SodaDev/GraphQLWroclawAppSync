@@ -1,0 +1,171 @@
+type Airport {
+	iataCode: String!
+	name: String
+	coordinates: Coordinates
+	base: Boolean
+	countryCode: String
+	cityCode: String
+	currencyCode: String
+	routes: [String]
+	priority: Int
+	thumbnail: String
+	inbound(limit: Int, skip: Int, from: AWSDate, to: AWSDate): [Route]
+	outbound(limit: Int, skip: Int, from: AWSDate, to: AWSDate): [Route]
+}
+
+type AirportConnection {
+	items: [Airport]
+	nextToken: String
+}
+
+type Coordinates {
+	latitude: Float
+	longitude: Float
+}
+
+input CreateAirportInput {
+	iataCode: String!
+	name: String
+	base: Boolean
+	countryCode: String
+	cityCode: String
+	currencyCode: String
+	routes: [String]
+	priority: Int
+}
+
+input DeleteAirportInput {
+	iataCode: String!
+}
+
+type Mutation {
+	createAirport(input: CreateAirportInput!): Airport
+	updateAirport(input: UpdateAirportInput!): Airport
+	deleteAirport(input: DeleteAirportInput!): Airport
+}
+
+type Query {
+	getAirport(iataCode: String!): Airport
+	listAirports(filter: TableAirportFilterInput, limit: Int, nextToken: String): AirportConnection
+}
+
+type Subscription {
+	onCreateAirport(
+		iataCode: String,
+		name: String,
+		base: Boolean,
+		countryCode: String,
+		cityCode: String
+	): Airport
+		@aws_subscribe(mutations: ["createAirport"])
+	onUpdateAirport(
+		iataCode: String,
+		name: String,
+		base: Boolean,
+		countryCode: String,
+		cityCode: String
+	): Airport
+		@aws_subscribe(mutations: ["updateAirport"])
+	onDeleteAirport(
+		iataCode: String,
+		name: String,
+		base: Boolean,
+		countryCode: String,
+		cityCode: String
+	): Airport
+		@aws_subscribe(mutations: ["deleteAirport"])
+}
+
+input TableAirportFilterInput {
+	iataCode: TableStringFilterInput
+	name: TableStringFilterInput
+	base: TableBooleanFilterInput
+	countryCode: TableStringFilterInput
+	cityCode: TableStringFilterInput
+	currencyCode: TableStringFilterInput
+	routes: TableStringFilterInput
+	priority: TableIntFilterInput
+}
+
+input TableBooleanFilterInput {
+	ne: Boolean
+	eq: Boolean
+}
+
+input TableFloatFilterInput {
+	ne: Float
+	eq: Float
+	le: Float
+	lt: Float
+	ge: Float
+	gt: Float
+	contains: Float
+	notContains: Float
+	between: [Float]
+}
+
+input TableIDFilterInput {
+	ne: ID
+	eq: ID
+	le: ID
+	lt: ID
+	ge: ID
+	gt: ID
+	contains: ID
+	notContains: ID
+	between: [ID]
+	beginsWith: ID
+}
+
+input TableIntFilterInput {
+	ne: Int
+	eq: Int
+	le: Int
+	lt: Int
+	ge: Int
+	gt: Int
+	contains: Int
+	notContains: Int
+	between: [Int]
+}
+
+input TableStringFilterInput {
+	ne: String
+	eq: String
+	le: String
+	lt: String
+	ge: String
+	gt: String
+	contains: String
+	notContains: String
+	between: [String]
+	beginsWith: String
+}
+
+input UpdateAirportInput {
+	iataCode: String!
+	name: String
+	base: Boolean
+	countryCode: String
+	cityCode: String
+	currencyCode: String
+	routes: [String]
+	priority: Int
+}
+
+type Route {
+    arrivalDateTime: String
+    departureDateTime: String
+    duration: String
+    flightType: String
+    startAirport: String
+    finalAirport: String
+    flights: [RouteFlight]
+}
+
+type RouteFlight {
+    arrivalAirportIataCode: String
+    arrivalDateTime: String
+    departureAirportIataCode: String
+    departureDateTime: AWSDateTime
+}

@@ -1,0 +1,405 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: 'GraphQL Wroclaw - AppSync'
+
+Resources:
+  #############################################################################
+  # Lambdas
+  #############################################################################
+  ThumbnailGeneratorLambda:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs8.10
+      Timeout: 30
+      MemorySize: 128
+      InlineCode: |
+        exports.handler = async(input, context, callback) => {
+            console.log(input, context, callback);
+
+            return `https://www.ryanair.com/etc/designs/ryanair/frontend/resources/ui/illustrations/destinations/${input.iataCode}.png`;
+        };
+
+  #############################################################################
+  # Security
+  #############################################################################
+  AppSyncLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "appsync.amazonaws.com"
+            Action:
+              - sts:AssumeRole
+      Path: "/service-role/"
+      Policies:
+        - PolicyName: LambdasAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - '*'
+                Effect: Allow
+
+  ThumbnailLambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "appsync.amazonaws.com"
+            Action:
+              - sts:AssumeRole
+      Path: "/service-role/"
+      Policies:
+        - PolicyName: LambdasAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - lambda:invokeFunction
+                Resource:
+                  - !GetAtt ThumbnailGeneratorLambda.Arn
+                  - !Sub
+                    - '${lambdaArn}:*'
+                    - lambdaArn: !GetAtt ThumbnailGeneratorLambda.Arn
+                Effect: Allow
+
+  DynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'GRAPHQL-WROCLAW-APPSYNC-AIRPORTS-DYNAMODB-ROLE'
+      ManagedPolicyArns:
+        - !Ref AppSyncDynamoDBPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - appsync.amazonaws.com
+
+  AppSyncDynamoDBPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows AppSync to use Dynamo.
+      Path: /appsync/
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+              - dynamodb:DeleteItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+            Resource: !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-ARN'
+
+  ElasticsearchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'GRAPHQL-WROCLAW-APPSYNC-ROUTES-ELASTICSEARCH-ROLE'
+      ManagedPolicyArns:
+        - !Ref AppSyncEsPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - appsync.amazonaws.com
+
+  AppSyncEsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows AppSync to use Elasticsearch.
+      Path: /appsync/
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - es:ESHttpDelete
+              - es:ESHttpHead
+              - es:ESHttpGet
+              - es:ESHttpPost
+              - es:ESHttpPut
+            Resource: !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-ARN'
+
+  #############################################################################
+  # AppSync
+  #############################################################################
+  GraphQLApi:
+    Type: "AWS::AppSync::GraphQLApi"
+    Properties:
+      UserPoolConfig:
+        AwsRegion: !Ref "AWS::Region"
+        DefaultAction: ALLOW
+      Name: 'GRAPHQL-WROCLAW-APPSYNC'
+      AuthenticationType: API_KEY
+      LogConfig:
+        FieldLogLevel: ERROR
+        CloudWatchLogsRoleArn: !GetAtt AppSyncLoggingRole.Arn
+
+  GraphQLSchema:
+    DependsOn: GraphQLApi
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      DefinitionS3Location: schema.graphql
+
+  #############################################################################
+  # Data sources
+  #############################################################################
+  ThumbnailLambdaDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      Type: AWS_LAMBDA
+      Description: "Airport thumbnail data source"
+      ServiceRoleArn: !GetAtt ThumbnailLambdaExecutionRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt ThumbnailGeneratorLambda.Arn
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: thumbnail_lambda
+
+  AirportsDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      Type: AMAZON_DYNAMODB
+      Description: "Airports data source"
+      ServiceRoleArn: !GetAtt DynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-NAME'
+        AwsRegion: !Sub "${AWS::Region}"
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: airports_data
+
+  ElasticsearchDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      Type: AMAZON_ELASTICSEARCH
+      Description: "Airports data source"
+      ServiceRoleArn: !GetAtt ElasticsearchRole.Arn
+      ElasticsearchConfig:
+        Endpoint: !Sub
+          - 'https://${endpoint}'
+          - endpoint: !ImportValue 'GRAPHQL-WROCLAW-ES-DOMAIN-ENDPOINT'
+        AwsRegion: !Sub "${AWS::Region}"
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: routes_data
+
+  #############################################################################
+  # Resolvers
+  #############################################################################
+  ThumbnailResolver:
+    DependsOn: GraphQLSchema
+    Type: "AWS::AppSync::Resolver"
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Airport
+      FieldName: thumbnail
+      DataSourceName: !GetAtt ThumbnailLambdaDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version" : "2017-02-28",
+          "operation": "Invoke",
+          "payload": $util.toJson({ "iataCode": $context.source.iataCode})
+        }
+      ResponseMappingTemplate: "$util.toJson($context.result)"
+
+  AirportSingleResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Query
+      FieldName: getAirport
+      DataSourceName: !GetAtt AirportsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "iataCode": $util.dynamodb.toDynamoDBJson($ctx.args.iataCode),
+          },
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($context.result)
+
+  AirportsAllResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Query
+      FieldName: listAirports
+      DataSourceName: !GetAtt AirportsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Scan",
+          "filter": #if($context.args.filter) $util.transform.toDynamoDBFilterExpression($ctx.args.filter) #else null #end,
+          "limit": $util.defaultIfNull($ctx.args.limit, 20),
+          "nextToken": $util.toJson($util.defaultIfNullOrEmpty($ctx.args.nextToken, null)),
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($context.result)
+
+  RoutesOutboundResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Airport
+      FieldName: outbound
+      DataSourceName: !GetAtt ElasticsearchDataSource.Name
+      RequestMappingTemplate: |
+                {
+                    "version":"2017-02-28",
+                    "operation":"GET",
+                    "path":"/routes/_search",
+                    "params":{
+                        "body": {
+                            "from": $util.defaultIfNull($ctx.args.skip, 0),
+                            "size": $util.defaultIfNull($ctx.args.limit, 10),
+                            "sort": [
+                              {
+                                "departureDateTime": {
+                                  "order": "asc"
+                                }
+                              }
+                            ],
+                            "query": {
+                                "bool": {
+                                  "must": [
+                                    {
+                                      "term": {
+                                        "startAirport.keyword": {
+                                          "value": "${context.source.iataCode}"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "range": {
+                                        "departureDateTime": {
+                                          "gte": #if($context.args.from) "${context.args.from}" #else "$util.time.nowISO8601()" #end
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "range": {
+                                        "arrivalDateTime": {
+                                          "lte": #if($context.args.to) "${context.args.to}" #else null #end
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                        }
+                    }
+                }
+      ResponseMappingTemplate: |
+        [
+            #foreach($entry in $context.result.hits.hits)
+            #if( $velocityCount > 1 ) , #end
+            $utils.toJson($entry.get("_source"))
+            #end
+        ]
+
+  RoutesInboundResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Airport
+      FieldName: inbound
+      DataSourceName: !GetAtt ElasticsearchDataSource.Name
+      RequestMappingTemplate: |
+          {
+              "version":"2017-02-28",
+              "operation":"GET",
+              "path":"/routes/_search",
+              "params":{
+                  "body": {
+                      "from": $util.defaultIfNull($ctx.args.skip, 0),
+                      "size": $util.defaultIfNull($ctx.args.limit, 10),
+                      "sort": [
+                        {
+                          "departureDateTime": {
+                            "order": "asc"
+                          }
+                        }
+                      ],
+                      "query": {
+                          "bool": {
+                            "must": [
+                              {
+                                "term": {
+                                  "finalAirport.keyword": {
+                                    "value": "${context.source.iataCode}"
+                                  }
+                                }
+                              },
+                              {
+                                "range": {
+                                  "departureDateTime": {
+                                    "gte": #if($context.args.from) "${context.args.from}" #else "$util.time.nowISO8601()" #end
+                                  }
+                                }
+                              },
+                              {
+                                "range": {
+                                  "arrivalDateTime": {
+                                    "lte": #if($context.args.to) "${context.args.to}" #else null #end
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                  }
+              }
+          }
+      ResponseMappingTemplate: |
+        [
+            #foreach($entry in $context.result.hits.hits)
+            #if( $velocityCount > 1 ) , #end
+            $utils.toJson($entry.get("_source"))
+            #end
+        ]
+
+##############################################################################
+## Outputs
+##############################################################################
+Outputs:
+  GraphQLApiDomain:
+    Description: GraphQL api domain
+    Value: !Select [ 2, !Split [ "/", !GetAtt GraphQLApi.GraphQLUrl] ]
+    Export:
+      Name: 'GRAPHQL-WROCLAW-APPSYNC-API-DOMAIN-NAME'
+  GraphQLApiUrl:
+    Description: GraphQL api url
+    Value: !GetAtt GraphQLApi.GraphQLUrl
+  GraphQLApiId:
+    Description: GraphQL api id
+    Value: !GetAtt GraphQLApi.ApiId

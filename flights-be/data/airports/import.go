@@ -13,7 +13,7 @@ import (
 )
 
 func getItems() []interface{} {
-	raw, err := ioutil.ReadFile("./airports.json")
+	raw, err := ioutil.ReadFile("./airportsWithRoutes.json")
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
