@@ -23,57 +23,11 @@ type Coordinates {
 	longitude: Float
 }
 
-input CreateAirportInput {
-	iataCode: String!
-	name: String
-	base: Boolean
-	countryCode: String
-	cityCode: String
-	currencyCode: String
-	routes: [String]
-	priority: Int
-}
-
-input DeleteAirportInput {
-	iataCode: String!
-}
-
-type Mutation {
-	createAirport(input: CreateAirportInput!): Airport
-	updateAirport(input: UpdateAirportInput!): Airport
-	deleteAirport(input: DeleteAirportInput!): Airport
-}
-
 type Query {
 	getAirport(iataCode: String!): Airport
 	listAirports(filter: TableAirportFilterInput, limit: Int, nextToken: String): AirportConnection
-}
-
-type Subscription {
-	onCreateAirport(
-		iataCode: String,
-		name: String,
-		base: Boolean,
-		countryCode: String,
-		cityCode: String
-	): Airport
-		@aws_subscribe(mutations: ["createAirport"])
-	onUpdateAirport(
-		iataCode: String,
-		name: String,
-		base: Boolean,
-		countryCode: String,
-		cityCode: String
-	): Airport
-		@aws_subscribe(mutations: ["updateAirport"])
-	onDeleteAirport(
-		iataCode: String,
-		name: String,
-		base: Boolean,
-		countryCode: String,
-		cityCode: String
-	): Airport
-		@aws_subscribe(mutations: ["deleteAirport"])
+	getPromotion(id: ID!): Promotion
+    listPromotions(limit: Int, nextToken: String): PromotionConnection
 }
 
 input TableAirportFilterInput {
@@ -142,17 +96,6 @@ input TableStringFilterInput {
 	beginsWith: String
 }
 
-input UpdateAirportInput {
-	iataCode: String!
-	name: String
-	base: Boolean
-	countryCode: String
-	cityCode: String
-	currencyCode: String
-	routes: [String]
-	priority: Int
-}
-
 type Route {
     arrivalDateTime: String
     departureDateTime: String
@@ -174,4 +117,43 @@ type RouteFlight {
 type FlightPrice {
     currencyCode: String
     amount: Float
+}
+
+input CreatePromotionInput {
+	startAirport: String
+	finalAirport: String
+	currencyCode: String
+	amount: Float
+	arrivalDate: AWSDate
+	departureDate: AWSDate
+}
+
+type Mutation {
+	createPromotion(input: CreatePromotionInput!): Promotion
+}
+
+type Promotion {
+	id: ID!
+	startAirport: String
+	finalAirport: String
+	currencyCode: String
+	amount: Float
+	arrivalDate: AWSDate
+	departureDate: AWSDate
+}
+
+type PromotionConnection {
+	items: [Promotion]
+	nextToken: String
+}
+
+type Subscription {
+	onCreatePromotion(
+		id: ID,
+		startAirport: String,
+		finalAirport: String,
+		currencyCode: String,
+		amount: Float
+	): Promotion
+		@aws_subscribe(mutations: ["createPromotion"])
 }

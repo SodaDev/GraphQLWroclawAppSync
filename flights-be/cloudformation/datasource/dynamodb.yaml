@@ -19,6 +19,20 @@ Resources:
         - AttributeName: "iataCode"
           KeyType: "HASH"
 
+  PromotionsTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: "GRAPHQL-PROMOTIONS"
+      BillingMode: "PAY_PER_REQUEST"
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      AttributeDefinitions:
+        - AttributeName: "id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "id"
+          KeyType: "HASH"
+
   ##########
   # ALARMS #
   ##########
@@ -106,6 +120,90 @@ Resources:
       OKActions:
         - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
 
+  PromotionsReadThrottleEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'PROMOTIONS-DYNAMODB-READ-THROTTLE-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: ReadThrottleEvents
+      Dimensions:
+        - Name: TableName
+          Value: !Ref PromotionsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+  PromotionsWriteThrottleEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'PROMOTIONS-DYNAMODB-WRITE-THROTTLE-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: WriteThrottleEvents
+      Dimensions:
+        - Name: TableName
+          Value: !Ref PromotionsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+  PromotionsThrottledRequestsEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'PROMOTIONS-DYNAMODB-REQUESTS-THROTTLE-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: ThrottledRequests
+      Dimensions:
+        - Name: TableName
+          Value: !Ref PromotionsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
+  PromotionsSystemErrorsEventsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: 'PROMOTIONS-DYNAMODB-SYSTEM-ERRORS-ALARM'
+      AlarmDescription: 'Reads are throttled.'
+      Namespace: 'AWS/DynamoDB'
+      MetricName: SystemErrorsAlarm
+      Dimensions:
+        - Name: TableName
+          Value: !Ref PromotionsTable
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+      OKActions:
+        - {'Fn::ImportValue': 'GRAPHQL-WROCLAW-ALARMS-SNS'}
+
 ###########
 # OUTPUTS #
 ###########
@@ -121,3 +219,15 @@ Outputs:
     Value: !GetAtt AiportsTable.Arn
     Export:
       Name: 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-ARN'
+
+  PromotionsTableName:
+    Description: 'Promotions table name'
+    Value: !Ref PromotionsTable
+    Export:
+      Name: 'GRAPHQL-WROCLAW-DYNAMO-PROMOTIONS-NAME'
+
+  PromotionsTableArn:
+    Description: 'Promotions table arn'
+    Value: !GetAtt PromotionsTable.Arn
+    Export:
+      Name: 'GRAPHQL-WROCLAW-DYNAMO-PROMOTIONS-ARN'

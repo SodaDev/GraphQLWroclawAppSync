@@ -110,7 +110,9 @@ Resources:
               - dynamodb:Scan
               - dynamodb:BatchGetItem
               - dynamodb:BatchWriteItem
-            Resource: !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-ARN'
+            Resource:
+            - !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-AIRPORTS-ARN'
+            - !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-PROMOTIONS-ARN'
 
   ElasticsearchRole:
     Type: AWS::IAM::Role
@@ -192,6 +194,18 @@ Resources:
         AwsRegion: !Sub "${AWS::Region}"
       ApiId: !GetAtt GraphQLApi.ApiId
       Name: airports_data
+
+  PromotionsDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      Type: AMAZON_DYNAMODB
+      Description: "Airports data source"
+      ServiceRoleArn: !GetAtt DynamoDBRole.Arn
+      DynamoDBConfig:
+        TableName: !ImportValue 'GRAPHQL-WROCLAW-DYNAMO-PROMOTIONS-NAME'
+        AwsRegion: !Sub "${AWS::Region}"
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: promotions_data
 
   ElasticsearchDataSource:
     Type: "AWS::AppSync::DataSource"
@@ -428,6 +442,31 @@ Resources:
             $utils.appendError($ctx.result.body, $ctx.result.statusCode)
         #end
 
+  CreatePromotionResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Mutation
+      FieldName: createPromotion
+      DataSourceName: !GetAtt PromotionsDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "id": $util.dynamodb.toDynamoDBJson($util.autoId()),
+          },
+          "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input),
+          "condition": {
+            "expression": "attribute_not_exists(#id)",
+            "expressionNames": {
+              "#id": "id",
+            },
+          },
+        }
+      ResponseMappingTemplate: |
+        $util.toJson($context.result)
 ##############################################################################
 ## Outputs
 ##############################################################################
