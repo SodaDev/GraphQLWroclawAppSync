@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  FlightPriceLoaderLambda:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs8.10
+      Timeout: 30
+      MemorySize: 128
+      InlineCode: |
+        exports.handler = async(input, context, callback) => {
+            console.log(input, context, callback);
+
+            const currencies = ["USD", "EUR", "PLN"];
+            const responseBody = {
+              "currencyCode": currencies[Math.floor(Math.random()*currencies.length)],
+              "amount": 10 + Math.random() * 50
+            };
+
+            const response = {
+                "statusCode": 200,
+                "headers": {},
+                "body": JSON.stringify(responseBody),
+                "isBase64Encoded": false
+            };
+            callback(null, response);
+        };
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /priceFlight
+            Method: POST
+            RestApiId: !Ref ApiGateway
+
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: 'GRAPHQL-WROCLAW-API-GATEWAY-API'
+      StageName: Demo
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          version: '2018-06-04T13:58:30Z'
+          title:
+            Ref: AWS::StackName
+        paths:
+          /priceFlight:
+            post:
+              responses:
+                '200':
+                  description: OK
+              security:
+                - api_key: []
+              x-amazon-apigateway-integration:
+                httpMethod: 'POST'
+                type: 'aws_proxy'
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FlightPriceLoaderLambda.Arn}/invocations'
+                responses: {}
+                passthroughBehavior: when_no_match
+        securityDefinitions:
+          api_key:
+            type: 'apiKey'
+            name: 'x-api-key'
+            in: 'header'
+        x-amazon-apigateway-gateway-responses:
+          ACCESS_DENIED:
+            statusCode: 403
+            responseTemplates:
+              application/json: '{"message": "Access denied"}'
+        x-amazon-apigateway-binary-media-types:
+          - 'image/jpeg'
+          - 'image/png'
+          - 'application/octet-stream'
+          - 'multipart/form-data'
+
+  ApiKey:
+    Type: 'AWS::ApiGateway::ApiKey'
+    DependsOn: ApiGatewayDemoStage
+    Properties:
+      Enabled: true
+      GenerateDistinctId: true
+      Name: 'GRAPHQL-WROCLAW-API-GATEWAY-API-KEY'
+      StageKeys:
+        - RestApiId: !Ref ApiGateway
+          StageName: Demo
+
+  UsagePlan:
+    Type: 'AWS::ApiGateway::UsagePlan'
+    DependsOn: ApiKey
+    Properties:
+      ApiStages:
+        - ApiId: !Ref ApiGateway
+          Stage: Demo
+      UsagePlanName: 'GRAPHQL-WROCLAW-API-GATEWAY-API'
+
+  UsagePlanKey:
+    Type: 'AWS::ApiGateway::UsagePlanKey'
+    DependsOn: UsagePlan
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: 'API_KEY'
+      UsagePlanId: !Ref UsagePlan
+
+Outputs:
+  ApiGatewayURL:
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com"
+    Export:
+      Name: 'GRAPHQL-WROCLAW-API-GATEWAY-API-URL'

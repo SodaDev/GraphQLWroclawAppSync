@@ -59,3 +59,4 @@ fabric.properties
 /.idea/
 flights-be/data/airports/GraphQLWroclawAppSync
 /flights-be/cloudformation/appsync/packaged.yaml
+/flights-be/cloudformation/apigateway/packaged.yaml
