@@ -161,6 +161,7 @@ type Route {
     startAirport: String
     finalAirport: String
     flights: [RouteFlight]
+    price: FlightPrice
 }
 
 type RouteFlight {
@@ -168,4 +169,9 @@ type RouteFlight {
     arrivalDateTime: String
     departureAirportIataCode: String
     departureDateTime: AWSDateTime
+}
+
+type FlightPrice {
+    currencyCode: String
+    amount: Float
 }

@@ -207,6 +207,16 @@ Resources:
       ApiId: !GetAtt GraphQLApi.ApiId
       Name: routes_data
 
+  PriceApiGatewayDataSource:
+    Type: "AWS::AppSync::DataSource"
+    Properties:
+      Type: HTTP
+      Description: "Airports data source"
+      HttpConfig:
+        Endpoint: !ImportValue 'GRAPHQL-WROCLAW-API-GATEWAY-API-URL'
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: prices_api
+
   #############################################################################
   # Resolvers
   #############################################################################
@@ -387,6 +397,36 @@ Resources:
             $utils.toJson($entry.get("_source"))
             #end
         ]
+
+  FlightPriceResolver:
+    Type: "AWS::AppSync::Resolver"
+    DependsOn: GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      TypeName: Route
+      FieldName: price
+      DataSourceName: !GetAtt PriceApiGatewayDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2018-05-29",
+          "method": "POST",
+          "resourcePath": "/Demo/priceFlight",
+          "params":{
+              "query":$util.toJson($ctx.args),
+              "headers": {
+                  "X-API-KEY": "GZynaWrvlSUJjV3bKoxjaVWbFxIiIMK2jYaCMWEf"
+              }
+          }
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.error)
+          $util.error($ctx.error.message, $ctx.error.type)
+        #end
+        #if($ctx.result.statusCode == 200)
+            $ctx.result.body
+        #else
+            $utils.appendError($ctx.result.body, $ctx.result.statusCode)
+        #end
 
 ##############################################################################
 ## Outputs
