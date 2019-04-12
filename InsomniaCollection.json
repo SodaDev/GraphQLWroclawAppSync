@@ -1,0 +1,223 @@
+{
+	"_type": "export",
+	"__export_format": 3,
+	"__export_date": "2019-04-12T19:16:00.030Z",
+	"__export_source": "insomnia.desktop.app:v6.3.2",
+	"resources": [
+		{
+			"_id": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"created": 1555094486312,
+			"description": "",
+			"modified": 1555094486312,
+			"name": "GraphQL Wroclaw",
+			"parentId": null,
+			"_type": "workspace"
+		},
+		{
+			"_id": "env_a6468081e4ed42878fe2f7bc0512ea2a",
+			"color": null,
+			"created": 1555094486322,
+			"data": {},
+			"isPrivate": false,
+			"metaSortKey": 1555094486322,
+			"modified": 1555094486322,
+			"name": "New Environment",
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"_type": "environment"
+		},
+		{
+			"_id": "jar_b5f2ff66cc044352833930b8d1dcdb6c",
+			"cookies": [],
+			"created": 1555094486326,
+			"modified": 1555094486326,
+			"name": "Default Jar",
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"_type": "cookie_jar"
+		},
+		{
+			"_id": "req_fd7745fdce7343728c9905d5abbf19d3",
+			"authentication": {},
+			"body": {
+				"mimeType": "application/graphql",
+				"text": "{\"query\":\"query getAirport {\\n  getAirport(iataCode: \\\"WRO\\\") {\\n    name\\n    base\\n    countryCode\\n    cityCode\\n    currencyCode\\n    coordinates {\\n      latitude\\n      longitude\\n    }\\n    iataCode\\n    priority\\n    routes\\n    priority\\n    thumbnail\\n    inbound {\\n      arrivalDateTime\\n      departureDateTime\\n      duration\\n      flightType\\n      startAirport\\n      finalAirport\\n      flights {\\n        departureAirportIataCode\\n        departureDateTime\\n        arrivalAirportIataCode\\n        arrivalDateTime\\n      }\\n      price {\\n        currencyCode\\n        amount\\n      }\\n    }\\n    outbound {\\n      arrivalDateTime\\n      departureDateTime\\n      duration\\n      flightType\\n      startAirport\\n      finalAirport\\n      flights {\\n        departureAirportIataCode\\n        departureDateTime\\n        arrivalAirportIataCode\\n        arrivalDateTime\\n      }\\n      price {\\n        currencyCode\\n        amount\\n      }\\n    }\\n  }\\n}\\n\",\"operationName\":\"getAirport\"}"
+			},
+			"created": 1555094505771,
+			"description": "",
+			"headers": [
+				{
+					"id": "pair_f41cfb95450c4c3baf03b65ecc665b20",
+					"name": "Content-Type",
+					"value": "application/json"
+				},
+				{
+					"id": "pair_4fcccbe0a0a646b6b323a7c7bb84fbdc",
+					"name": "x-api-key",
+					"value": "da2-arwxqlcojfc53hoxiuzhx7q6ji"
+				}
+			],
+			"isPrivate": false,
+			"metaSortKey": -1555094505771,
+			"method": "POST",
+			"modified": 1555095242144,
+			"name": "Get Airport",
+			"parameters": [],
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"settingMaxTimelineDataSize": 1000,
+			"settingRebuildPath": true,
+			"settingSendCookies": true,
+			"settingStoreCookies": true,
+			"url": "https://ljnuqchcjzhs5mfpruug5scezq.appsync-api.eu-west-1.amazonaws.com/graphql",
+			"_type": "request"
+		},
+		{
+			"_id": "req_46c38bb82b99491d992c4f8b54c686c8",
+			"authentication": {},
+			"body": {
+				"mimeType": "application/graphql",
+				"text": "{\"query\":\"query getAirport {\\n\\tgetAirport(iataCode: \\\"WRO\\\") {\\n\\t  name\\n\\t  base\\n\\t  countryCode\\n\\t  cityCode\\n\\t  currencyCode\\n    coordinates {\\n      latitude\\n      longitude\\n    }\\n    iataCode\\n\\t  priority\\n    routes\\n    priority\\n\\t  thumbnail\\n    inbound(limit: 5, from: \\\"2019-05-08\\\") {\\n      arrivalDateTime\\n      departureDateTime\\n      duration\\n      flightType\\n      startAirport\\n      finalAirport\\n      flights {\\n        departureAirportIataCode\\n        departureDateTime\\n        arrivalAirportIataCode\\n        arrivalDateTime\\n      }\\n      price {\\n        currencyCode\\n        amount\\n      }\\n    }\\n    outbound(limit: 5, from: \\\"2019-05-15\\\") {\\n      arrivalDateTime\\n      departureDateTime\\n      duration\\n      flightType\\n      startAirport\\n      finalAirport\\n      flights {\\n        departureAirportIataCode\\n        departureDateTime\\n        arrivalAirportIataCode\\n        arrivalDateTime\\n      }\\n      price {\\n        currencyCode\\n        amount\\n      }\\n    }\\n\\t} \\n}\",\"operationName\":\"getAirport\"}"
+			},
+			"created": 1555094822211,
+			"description": "",
+			"headers": [
+				{
+					"id": "pair_f41cfb95450c4c3baf03b65ecc665b20",
+					"name": "Content-Type",
+					"value": "application/json"
+				},
+				{
+					"id": "pair_4fcccbe0a0a646b6b323a7c7bb84fbdc",
+					"name": "x-api-key",
+					"value": "da2-arwxqlcojfc53hoxiuzhx7q6ji"
+				}
+			],
+			"isPrivate": false,
+			"metaSortKey": -1555094505721,
+			"method": "POST",
+			"modified": 1555095250583,
+			"name": "Get Airport with filters",
+			"parameters": [],
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"settingMaxTimelineDataSize": 1000,
+			"settingRebuildPath": true,
+			"settingSendCookies": true,
+			"settingStoreCookies": true,
+			"url": "https://ljnuqchcjzhs5mfpruug5scezq.appsync-api.eu-west-1.amazonaws.com/graphql",
+			"_type": "request"
+		},
+		{
+			"_id": "req_8a5a3bbcb521469285e69042046a73b5",
+			"authentication": {},
+			"body": {
+				"mimeType": "application/graphql",
+				"text": "{\"query\":\"query listAirports {\\n  listAirports(limit: 10) {\\n    nextToken\\n    items {\\n      name\\n      base\\n      countryCode\\n      cityCode\\n      currencyCode\\n      coordinates {\\n        latitude\\n        longitude\\n      }\\n      iataCode\\n      priority\\n      routes\\n      priority\\n      thumbnail\\n      inbound(limit: 5, from: \\\"2019-05-08\\\") {\\n        arrivalDateTime\\n        departureDateTime\\n        duration\\n        flightType\\n        startAirport\\n        finalAirport\\n        flights {\\n          departureAirportIataCode\\n          departureDateTime\\n          arrivalAirportIataCode\\n          arrivalDateTime\\n        }\\n        price {\\n          currencyCode\\n          amount\\n        }\\n      }\\n      outbound(limit: 5, from: \\\"2019-05-15\\\") {\\n        arrivalDateTime\\n        departureDateTime\\n        duration\\n        flightType\\n        startAirport\\n        finalAirport\\n        flights {\\n          departureAirportIataCode\\n          departureDateTime\\n          arrivalAirportIataCode\\n          arrivalDateTime\\n        }\\n        price {\\n          currencyCode\\n          amount\\n        }\\n      }\\n    }\\n  }\\n}\\n\",\"operationName\":\"listAirports\"}"
+			},
+			"created": 1555094897789,
+			"description": "",
+			"headers": [
+				{
+					"id": "pair_f41cfb95450c4c3baf03b65ecc665b20",
+					"name": "Content-Type",
+					"value": "application/json"
+				},
+				{
+					"id": "pair_4fcccbe0a0a646b6b323a7c7bb84fbdc",
+					"name": "x-api-key",
+					"value": "da2-arwxqlcojfc53hoxiuzhx7q6ji"
+				}
+			],
+			"isPrivate": false,
+			"metaSortKey": -1555094505671,
+			"method": "POST",
+			"modified": 1555095636327,
+			"name": "List airports",
+			"parameters": [],
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"settingMaxTimelineDataSize": 1000,
+			"settingRebuildPath": true,
+			"settingSendCookies": true,
+			"settingStoreCookies": true,
+			"url": "https://ljnuqchcjzhs5mfpruug5scezq.appsync-api.eu-west-1.amazonaws.com/graphql",
+			"_type": "request"
+		},
+		{
+			"_id": "req_709b74c4fa8e49b0930e4f67904317a8",
+			"authentication": {},
+			"body": {
+				"mimeType": "application/graphql",
+				"text": "{\"query\":\"subscription watchPromoSubscriptions {\\n  onCreatePromotion(startAirport: \\\"WRO\\\") {\\n    id\\n\\t\\tstartAirport\\n    finalAirport\\n    currencyCode\\n    amount\\n    departureDate\\n    arrivalDate\\n  }\\n}\",\"operationName\":\"watchPromoSubscriptions\"}"
+			},
+			"created": 1555095659306,
+			"description": "",
+			"headers": [
+				{
+					"id": "pair_f41cfb95450c4c3baf03b65ecc665b20",
+					"name": "Content-Type",
+					"value": "application/json"
+				},
+				{
+					"id": "pair_4fcccbe0a0a646b6b323a7c7bb84fbdc",
+					"name": "x-api-key",
+					"value": "da2-arwxqlcojfc53hoxiuzhx7q6ji"
+				}
+			],
+			"isPrivate": false,
+			"metaSortKey": -1555094505621,
+			"method": "POST",
+			"modified": 1555096422222,
+			"name": "Promo subscribe",
+			"parameters": [],
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"settingMaxTimelineDataSize": 1000,
+			"settingRebuildPath": true,
+			"settingSendCookies": true,
+			"settingStoreCookies": true,
+			"url": "https://ljnuqchcjzhs5mfpruug5scezq.appsync-api.eu-west-1.amazonaws.com/graphql",
+			"_type": "request"
+		},
+		{
+			"_id": "req_0e30f64a29974582b5e69bc216f98658",
+			"authentication": {},
+			"body": {
+				"mimeType": "application/graphql",
+				"text": "{\"query\":\"mutation createPromo($CreatePromotionInput: CreatePromotionInput!) {\\n  createPromotion(input: $CreatePromotionInput) {\\n    id\\n    startAirport\\n    finalAirport\\n    currencyCode\\n    amount\\n    departureDate\\n    arrivalDate\\n  }\\n}\",\"variables\":{\"CreatePromotionInput\":{\"finalAirport\":\"DUB\",\"startAirport\":\"QE\",\"currencyCode\":\"EUR\",\"amount\":666,\"arrivalDate\":\"2019-06-11\",\"departureDate\":\"2019-06-14\"}},\"operationName\":\"createPromo\"}"
+			},
+			"created": 1555095839434,
+			"description": "",
+			"headers": [
+				{
+					"id": "pair_f41cfb95450c4c3baf03b65ecc665b20",
+					"name": "Content-Type",
+					"value": "application/json"
+				},
+				{
+					"id": "pair_4fcccbe0a0a646b6b323a7c7bb84fbdc",
+					"name": "x-api-key",
+					"value": "da2-arwxqlcojfc53hoxiuzhx7q6ji"
+				}
+			],
+			"isPrivate": false,
+			"metaSortKey": -1555094505571,
+			"method": "POST",
+			"modified": 1555096467506,
+			"name": "Promo create",
+			"parameters": [],
+			"parentId": "wrk_c6708ea1d65b46d1b7b68392c5fdeb82",
+			"settingDisableRenderRequestBody": false,
+			"settingEncodeUrl": true,
+			"settingMaxTimelineDataSize": 1000,
+			"settingRebuildPath": true,
+			"settingSendCookies": true,
+			"settingStoreCookies": true,
+			"url": "https://ljnuqchcjzhs5mfpruug5scezq.appsync-api.eu-west-1.amazonaws.com/graphql",
+			"_type": "request"
+		}
+	]
+}

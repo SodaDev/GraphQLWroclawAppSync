@@ -111,7 +111,7 @@ type RouteFlight {
     arrivalAirportIataCode: String
     arrivalDateTime: String
     departureAirportIataCode: String
-    departureDateTime: AWSDateTime
+    departureDateTime: String
 }
 
 type FlightPrice {
